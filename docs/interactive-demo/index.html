@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ToolCall Replay</title>
+<link rel="stylesheet" href="site.css">
+<link rel="icon" href="data:,">
+</head>
+<body class="terminal" data-demo="toolcall">
+<a class="skip" href="#main">Skip to recorded trace</a>
+<header class="site-head">
+<a href="https://project-atlas-six-delta.vercel.app/projects/">← five local studies</a>
+<nav aria-label="Project navigation">
+<a aria-current="page" href="./index.html">ToolCall Replay</a>
+<a href="https://project-atlas-six-delta.vercel.app/projects/entity-resolution-workbench/">Entity</a>
+<a href="https://project-atlas-six-delta.vercel.app/projects/postgres-migration-rehearsal/">PMR</a>
+<a href="https://project-atlas-six-delta.vercel.app/projects/api-contract-guard/">ACG</a>
+<a href="https://project-atlas-six-delta.vercel.app/projects/evidencedesk/">EvidenceDesk</a>
+</nav>
+</header>
+<main class="wrap" id="main" tabindex="-1">
+<p class="eyebrow">Local deterministic trace evaluator</p>
+<p class="quiet">Static walkthrough • synthetic examples • application runs locally.</p>
+<h1>Read the trace. Then read the verdict.</h1>
+<p class="lede">ToolCall Replay checks whether a small synthetic tool-call trace followed a versioned rule set. It evaluates data locally; it does not run an agent, a tool, a model, or a network request.</p>
+<p><a href="https://github.com/LuxuriantTech/toolcall-replay/tree/main">Source and local setup on GitHub</a></p>
+<div class="actions" aria-label="ToolCall Replay actions">
+<a class="action primary" href="#interactive-demo">Try the demo</a>
+<a class="action" href="https://github.com/LuxuriantTech/toolcall-replay/tree/main">GitHub</a>
+<a class="action" href="mailto:mehajardian@gmail.com?subject=ToolCall%20Replay">Contact me</a>
+</div>
+<section class="demo" id="interactive-demo" aria-labelledby="tool-demo-title">
+<div class="demo-head"><div><p class="eyebrow">Interactive prepared trace</p><h2 id="tool-demo-title">Inspect an illustrative verdict</h2></div><button class="action" type="button" id="toolcall-reset">Reset demo</button></div>
+<p>All inputs below are synthetic and evaluated in this browser as prepared trace data. No tool, agent, model, or network request runs.</p>
+<div class="demo-controls"><label>Trace<select id="trace-select" data-initial="safe"><option value="safe">Approved address lookup</option><option value="risky">Risky directory update</option></select></label><label>Filter events<input id="event-filter" data-initial="" type="search" placeholder="for example: approval"></label></div>
+<p id="tool-live" class="sr-status" aria-live="polite"></p><div id="tool-output" class="demo-output" aria-live="polite"></div>
+</section>
+<section class="trace" aria-label="Recorded evaluator outcome">
+<b>illustrative</b> baseline: PASS - safe trace outcome<br>
+<b>illustrative</b> candidate: <span class="fail">FAIL</span> - three named concerns<br>
+<span class="quiet">This hand-authored example explains an expected evaluator verdict; it is not an application failure or a browser engine run.</span>
+</section>
+<hr class="rule">
+<div class="grid two">
+<section>
+<h2>A useful failure</h2>
+<p>The synthetic candidate asks for an over-broad lookup, calls a forbidden directory export, and misses approval before an update. The evaluator reports <code>lookup-scope</code>, <code>no-directory-export</code>, and <code>update-needs-approval</code>.</p>
+<p>A separate invalid JSON trace is an input or application error: it publishes no partial result. That differs from an illustrative trace whose intended verdict is FAIL.</p>
+</section>
+<section class="panel">
+<h2>Recorded state</h2>
+<p>
+<span class="tag">Synthetic</span>
+</p>
+<p>The safe built-in trace starts selected. A second built-in trace is deliberately risky and is expected to receive FAIL. Both are local, versioned examples.</p>
+</section>
+</div>
+<figure class="figure">
+<img src="assets/toolcall-real-evaluator-expected-fail.png" alt="Recorded local evaluator result for the risky synthetic trace: evaluation complete, candidate FAIL, with three named rule violations.">
+<figcaption>Recorded local browser result. FAIL is the expected trace verdict for this synthetic candidate; it is not a crash.</figcaption>
+</figure>
+<div class="caption-grid">
+<section>
+<h2>What the evaluator makes inspectable</h2>
+<ul>
+<li>the baseline and candidate verdicts separately;</li>
+<li>rule-by-rule evidence and a repeatable report digest;</li>
+<li>bounded JSON parsing before replay starts.</li>
+</ul>
+</section>
+<details>
+<summary>Local start and stop</summary>
+<pre class="command">
+<code>uv sync --frozen
+scripts/lab.sh start
+scripts/lab.sh stop</code>
+</pre>
+<p>Open the loopback address printed by the start script. The documented mode is local launch with recorded static captures; do not expose the local HTTP engine online.</p>
+</details>
+</div>
+<hr class="rule">
+<section class="notice">
+<strong>Limit</strong>The published adapter limits trace bytes, events, JSON nodes, and nesting. Those fixed limits do not establish production scale, multi-user safety, real-data suitability, general accessibility, or security certification.</section>
+</main>
+<footer class="site-foot">
+<p>I define the needs, organize AI-assisted work, review the code with AI support, test the journeys, and improve the result. AI contributes strongly to implementation; I am still developing my ability to write code independently. <a href="mailto:mehajardian@gmail.com?subject=ToolCall%20Replay">mehajardian@gmail.com</a></p>
+</footer>
+<script src="demo.js"></script>
+</body>
+</html>
