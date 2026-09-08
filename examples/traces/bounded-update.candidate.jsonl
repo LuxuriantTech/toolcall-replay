@@ -1,0 +1,5 @@
+{"schema_version":"1.0","case_id":"bounded-update","step":1,"kind":"tool_call","tool":"request.lookup","arguments":{"scope":"all"}}
+{"schema_version":"1.0","case_id":"bounded-update","step":2,"kind":"tool_call","tool":"directory.export","arguments":{"scope":"synthetic"}}
+{"schema_version":"1.0","case_id":"bounded-update","step":3,"kind":"approval","approval_id":"update-1","status":"granted","tool":"request.update","arguments":{"scope":"team:synthetic","status":"updated"}}
+{"schema_version":"1.0","case_id":"bounded-update","step":4,"kind":"tool_call","tool":"request.update","arguments":{"scope":"team:synthetic","status":"updated"}}
+{"schema_version":"1.0","case_id":"bounded-update","step":5,"kind":"result","status":"completed","output":{"status":"updated","scope":"team:synthetic"}}

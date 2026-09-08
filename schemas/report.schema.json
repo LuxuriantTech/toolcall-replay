@@ -1,0 +1,480 @@
+{
+  "$id": "https://toolcall-replay.local/schemas/report-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "approval_violation": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "missing_reference",
+            "unknown_approval",
+            "approval_not_prior",
+            "approval_denied",
+            "tool_mismatch",
+            "arguments_mismatch",
+            "approval_reused"
+          ]
+        },
+        "step": { "minimum": 1, "type": "integer" }
+      },
+      "required": ["step", "reason"],
+      "type": "object"
+    },
+    "argument_observation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "present": { "const": true } },
+            "required": ["present"]
+          },
+          "then": { "required": ["value"] },
+          "else": { "not": { "required": ["value"] } }
+        }
+      ],
+      "properties": {
+        "present": { "type": "boolean" },
+        "step": { "minimum": 1, "type": "integer" },
+        "value": {}
+      },
+      "required": ["step", "present"],
+      "type": "object"
+    },
+    "evaluation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "verdict": { "const": "PASS" } },
+            "required": ["verdict"]
+          },
+          "then": {
+            "properties": {
+              "rules": {
+                "items": {
+                  "properties": { "verdict": { "const": "PASS" } },
+                  "required": ["verdict"]
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "rules": {
+                "contains": {
+                  "properties": { "verdict": { "const": "FAIL" } },
+                  "required": ["verdict"]
+                },
+                "minContains": 1
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "rules": {
+          "items": { "$ref": "#/$defs/rule_result" },
+          "minItems": 1,
+          "type": "array"
+        },
+        "verdict": { "enum": ["PASS", "FAIL"] }
+      },
+      "required": ["verdict", "rules"],
+      "type": "object"
+    },
+    "rule_result": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                { "properties": { "message": { "const": "call count within bounds" }, "verdict": { "const": "PASS" } } },
+                { "properties": { "message": { "const": "call count outside bounds" }, "verdict": { "const": "FAIL" } } }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "max_calls": { "minimum": 0, "type": "integer" },
+                "min_calls": { "minimum": 0, "type": "integer" },
+                "observed_count": { "minimum": 0, "type": "integer" },
+                "steps": { "items": { "minimum": 1, "type": "integer" }, "type": "array", "uniqueItems": true },
+                "tool": { "$ref": "#/$defs/tool" }
+              },
+              "required": ["tool", "observed_count", "min_calls", "max_calls", "steps"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "call_presence" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "evidence": {
+                      "properties": {
+                        "first_tool_step": { "minimum": 1, "type": "integer" },
+                        "then_tool_step": { "minimum": 1, "type": "integer" }
+                      }
+                    },
+                    "message": { "const": "required call order observed" },
+                    "verdict": { "const": "PASS" }
+                  }
+                },
+                { "properties": { "message": { "const": "required call order not observed" }, "verdict": { "const": "FAIL" } } }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "first_tool": { "$ref": "#/$defs/tool" },
+                "first_tool_step": { "oneOf": [{ "minimum": 1, "type": "integer" }, { "type": "null" }] },
+                "then_tool": { "$ref": "#/$defs/tool" },
+                "then_tool_step": { "oneOf": [{ "minimum": 1, "type": "integer" }, { "type": "null" }] }
+              },
+              "required": ["first_tool", "then_tool", "first_tool_step", "then_tool_step"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "call_order" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "evidence": {
+                      "properties": {
+                        "observations": { "minItems": 1 },
+                        "violating_steps": { "maxItems": 0 }
+                      }
+                    },
+                    "message": { "const": "tool arguments are within allowed values" },
+                    "verdict": { "const": "PASS" }
+                  }
+                },
+                {
+                  "properties": {
+                    "evidence": {
+                      "anyOf": [
+                        { "properties": { "observations": { "maxItems": 0 } } },
+                        { "properties": { "violating_steps": { "minItems": 1 } } }
+                      ]
+                    },
+                    "message": { "const": "tool arguments violate allowed values" },
+                    "verdict": { "const": "FAIL" }
+                  }
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "allowed_values": { "items": {}, "minItems": 1, "type": "array" },
+                "argument": { "minLength": 1, "type": "string" },
+                "observations": { "items": { "$ref": "#/$defs/argument_observation" }, "type": "array", "uniqueItems": true },
+                "tool": { "$ref": "#/$defs/tool" },
+                "violating_steps": { "items": { "minimum": 1, "type": "integer" }, "type": "array", "uniqueItems": true }
+              },
+              "required": ["tool", "argument", "allowed_values", "observations", "violating_steps"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "argument_constraint" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "evidence": { "properties": { "violating_steps": { "maxItems": 0 } } },
+                    "message": { "const": "forbidden tool not called" },
+                    "verdict": { "const": "PASS" }
+                  }
+                },
+                {
+                  "properties": {
+                    "evidence": { "properties": { "violating_steps": { "minItems": 1 } } },
+                    "message": { "const": "forbidden tool called" },
+                    "verdict": { "const": "FAIL" }
+                  }
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "tool": { "$ref": "#/$defs/tool" },
+                "violating_steps": { "items": { "minimum": 1, "type": "integer" }, "type": "array", "uniqueItems": true }
+              },
+              "required": ["tool", "violating_steps"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "forbidden_tool" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "evidence": { "properties": { "violations": { "maxItems": 0 } } },
+                    "message": { "const": "required approvals are valid" },
+                    "verdict": { "const": "PASS" }
+                  }
+                },
+                {
+                  "properties": {
+                    "evidence": { "properties": { "violations": { "minItems": 1 } } },
+                    "message": { "const": "required approval missing or invalid" },
+                    "verdict": { "const": "FAIL" }
+                  }
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "tool": { "$ref": "#/$defs/tool" },
+                "violations": { "items": { "$ref": "#/$defs/approval_violation" }, "type": "array", "uniqueItems": true }
+              },
+              "required": ["tool", "violations"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "approval_required" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "evidence": {
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "expected_status": { "const": "completed" },
+                            "observed_status": { "const": "completed" },
+                            "output_matches": { "const": true }
+                          }
+                        },
+                        {
+                          "properties": {
+                            "expected_status": { "const": "failed" },
+                            "observed_status": { "const": "failed" },
+                            "output_matches": { "const": true }
+                          }
+                        }
+                      ]
+                    },
+                    "message": { "const": "expected result observed" },
+                    "verdict": { "const": "PASS" }
+                  }
+                },
+                {
+                  "properties": {
+                    "evidence": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "properties": {
+                              "expected_status": { "const": "completed" },
+                              "observed_status": { "const": "completed" },
+                              "output_matches": { "const": true }
+                            }
+                          },
+                          {
+                            "properties": {
+                              "expected_status": { "const": "failed" },
+                              "observed_status": { "const": "failed" },
+                              "output_matches": { "const": true }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "message": { "const": "expected result not observed" },
+                    "verdict": { "const": "FAIL" }
+                  }
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "expected_status": { "enum": ["completed", "failed"] },
+                "observed_status": { "enum": ["completed", "failed"] },
+                "output_matches": { "type": "boolean" }
+              },
+              "required": ["expected_status", "observed_status", "output_matches"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "expected_result" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "oneOf": [
+                { "properties": { "message": { "const": "step budget respected" }, "verdict": { "const": "PASS" } } },
+                { "properties": { "message": { "const": "step budget exceeded" }, "verdict": { "const": "FAIL" } } }
+              ]
+            }
+          ],
+          "properties": {
+            "evidence": {
+              "additionalProperties": false,
+              "properties": {
+                "max_steps": { "minimum": 0, "type": "integer" },
+                "observed_steps": { "minimum": 0, "type": "integer" }
+              },
+              "required": ["observed_steps", "max_steps"],
+              "type": "object"
+            },
+            "message": { "type": "string" },
+            "rule_id": { "$ref": "#/$defs/rule_id" },
+            "type": { "const": "step_budget" },
+            "verdict": { "enum": ["PASS", "FAIL"] }
+          },
+          "required": ["rule_id", "type", "verdict", "message", "evidence"],
+          "type": "object"
+        }
+      ]
+    },
+    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+    "tool": { "pattern": "^[a-z][a-z0-9_.-]*$", "type": "string" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": { "verdict": { "const": "PASS" } },
+        "required": ["verdict"]
+      },
+      "then": {
+        "properties": {
+          "cases": {
+            "items": {
+              "properties": {
+                "baseline": { "properties": { "verdict": { "const": "PASS" } }, "required": ["verdict"] },
+                "candidate": { "properties": { "verdict": { "const": "PASS" } }, "required": ["verdict"] }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "cases": {
+            "contains": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "baseline": { "properties": { "verdict": { "const": "FAIL" } }, "required": ["verdict"] }
+                  },
+                  "required": ["baseline"]
+                },
+                {
+                  "properties": {
+                    "candidate": { "properties": { "verdict": { "const": "FAIL" } }, "required": ["verdict"] }
+                  },
+                  "required": ["candidate"]
+                }
+              ]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "cases": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": { "$ref": "#/$defs/evaluation" },
+          "candidate": { "$ref": "#/$defs/evaluation" },
+          "case_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+          "diff": {
+            "additionalProperties": false,
+            "properties": {
+              "new_failures": { "items": { "$ref": "#/$defs/rule_id" }, "type": "array", "uniqueItems": true },
+              "resolved_failures": { "items": { "$ref": "#/$defs/rule_id" }, "type": "array", "uniqueItems": true },
+              "unchanged_failures": { "items": { "$ref": "#/$defs/rule_id" }, "type": "array", "uniqueItems": true }
+            },
+            "required": ["new_failures", "resolved_failures", "unchanged_failures"],
+            "type": "object"
+          }
+        },
+        "required": ["case_id", "baseline", "candidate", "diff"],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "digest": { "pattern": "^[0-9a-f]{64}$", "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "suite_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+    "verdict": { "enum": ["PASS", "FAIL"] }
+  },
+  "required": ["schema_version", "suite_id", "verdict", "digest", "cases"],
+  "title": "ToolCall Replay report v1",
+  "type": "object"
+}

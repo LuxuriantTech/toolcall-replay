@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'"
+    />
+    <meta
+      name="description"
+      content="A local laboratory for inspecting deterministic ToolCall Replay evaluations."
+    />
+    <title>ToolCall Replay | Trace Ledger</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to replay workspace</a>
+    <div class="app-shell">
+      <aside class="lab-rail" aria-labelledby="ledger-title">
+        <header class="brand-block">
+          <p class="brand" id="ledger-title">Trace Ledger</p>
+          <p class="brand-subtitle">Local trace evaluation lab</p>
+        </header>
+
+        <section class="rail-section" aria-labelledby="scenarios-title">
+          <h2 class="eyebrow" id="scenarios-title">Built-in scenarios</h2>
+          <div id="scenario-list" class="scenario-list">
+            <p class="loading-marker">Loading built-in scenarios</p>
+          </div>
+        </section>
+
+        <section class="rail-section" aria-labelledby="import-title">
+          <h2 class="eyebrow" id="import-title">Import trace</h2>
+          <label class="file-control" for="trace-file">
+            Choose JSON trace
+            <input id="trace-file" class="visually-hidden-input" type="file" accept="application/json,.json" aria-describedby="import-hint import-status" />
+          </label>
+          <p class="quiet" id="import-hint">Validated locally before replay.</p>
+          <p class="import-status" id="import-status" data-testid="import-status">No trace imported</p>
+        </section>
+
+        <section class="rail-section" aria-labelledby="actions-title">
+          <h2 class="eyebrow" id="actions-title">Actions</h2>
+          <button class="secondary-action" id="reset-button" type="button">Reset lab</button>
+        </section>
+
+        <section class="local-note" aria-label="Local processing boundary">
+          <p class="local-note-title">Local only</p>
+          <p>No external calls</p>
+          <p class="quiet">Synthetic traces stay on this machine.</p>
+          <p class="quiet" data-testid="lab-limits">Synthetic traces only. No tools, models, or external APIs run.</p>
+        </section>
+      </aside>
+
+      <main id="workspace" class="workspace" tabindex="-1" aria-busy="true">
+        <header class="workspace-header">
+          <div>
+            <h1>ToolCall Replay</h1>
+            <p class="product-intro" data-testid="problem-statement">Agent traces can look plausible while breaking approval or scope rules. Replay a small synthetic example to see what matched and what diverged.</p>
+            <p id="scenario-context" class="scenario-context">Preparing the local laboratory.</p>
+          </div>
+          <div class="run-state" aria-label="Replay state">
+            <span id="run-state-label">Ready offline</span>
+          </div>
+        </header>
+
+        <div id="lab-status" data-testid="lab-status" class="status-region" aria-live="polite" aria-atomic="true">
+          Loading built-in scenarios.
+        </div>
+        <div id="error-region"></div>
+
+        <section id="run-controls" class="run-controls" aria-label="Replay controls">
+          <button class="primary-action" id="replay-button" type="button" disabled>Replay trace</button>
+          <p id="run-helper" class="quiet" data-testid="scenario-expectation">Select a scenario to begin.</p>
+        </section>
+
+        <div id="results-root">
+          <section class="empty-state" data-testid="results-empty" aria-labelledby="empty-title">
+            <p class="empty-kicker">No replay yet</p>
+            <h2 id="empty-title">Replay a trace to inspect its evidence</h2>
+            <p>The approved trace is selected by default for a one-click start. You can also choose the expected failing example or import a bounded JSON trace. Results come from the local evaluator.</p>
+          </section>
+        </div>
+      </main>
+
+      <aside
+        id="inspector"
+        class="inspector"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="inspector-title"
+        hidden
+      >
+        <div class="inspector-header">
+          <p class="eyebrow" id="inspector-title">Divergence details</p>
+          <button class="close-button" id="close-inspector" type="button" aria-label="Close divergence details">Close</button>
+        </div>
+        <div id="inspector-content"></div>
+      </aside>
+    </div>
+  </body>
+</html>

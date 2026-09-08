@@ -1,0 +1,49 @@
+{
+  "$id": "https://toolcall-replay.local/schemas/trace-event-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "approval_id": { "minLength": 1, "type": "string" },
+        "arguments": { "type": "object" },
+        "case_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+        "kind": { "const": "tool_call" },
+        "schema_version": { "const": "1.0" },
+        "step": { "minimum": 1, "type": "integer" },
+        "tool": { "pattern": "^[a-z][a-z0-9_.-]*$", "type": "string" }
+      },
+      "required": ["schema_version", "case_id", "step", "kind", "tool", "arguments"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "approval_id": { "minLength": 1, "type": "string" },
+        "arguments": { "type": "object" },
+        "case_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+        "kind": { "const": "approval" },
+        "schema_version": { "const": "1.0" },
+        "status": { "enum": ["granted", "denied"] },
+        "step": { "minimum": 1, "type": "integer" },
+        "tool": { "pattern": "^[a-z][a-z0-9_.-]*$", "type": "string" }
+      },
+      "required": ["schema_version", "case_id", "step", "kind", "approval_id", "status", "tool", "arguments"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+        "kind": { "const": "result" },
+        "output": {},
+        "schema_version": { "const": "1.0" },
+        "status": { "enum": ["completed", "failed"] },
+        "step": { "minimum": 1, "type": "integer" }
+      },
+      "required": ["schema_version", "case_id", "step", "kind", "status", "output"],
+      "type": "object"
+    }
+  ],
+  "title": "ToolCall Replay trace event v1"
+}

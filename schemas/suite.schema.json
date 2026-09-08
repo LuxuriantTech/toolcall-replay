@@ -1,0 +1,141 @@
+{
+  "$id": "https://toolcall-replay.local/schemas/suite-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cases": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_trace": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "candidate_trace": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "case_id": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rules": {
+            "items": {
+              "oneOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "max_calls": { "minimum": 0, "type": "integer" },
+                    "min_calls": { "minimum": 0, "type": "integer" },
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "tool": { "$ref": "#/$defs/tool" },
+                    "type": { "const": "call_presence" }
+                  },
+                  "required": ["rule_id", "type", "tool", "min_calls", "max_calls"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "first_tool": { "$ref": "#/$defs/tool" },
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "then_tool": { "$ref": "#/$defs/tool" },
+                    "type": { "const": "call_order" }
+                  },
+                  "required": ["rule_id", "type", "first_tool", "then_tool"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "allowed_values": {
+                      "items": {},
+                      "maxItems": 10000,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "argument": { "minLength": 1, "type": "string" },
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "tool": { "$ref": "#/$defs/tool" },
+                    "type": { "const": "argument_constraint" }
+                  },
+                  "required": ["rule_id", "type", "tool", "argument", "allowed_values"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "tool": { "$ref": "#/$defs/tool" },
+                    "type": { "const": "forbidden_tool" }
+                  },
+                  "required": ["rule_id", "type", "tool"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "tool": { "$ref": "#/$defs/tool" },
+                    "type": { "const": "approval_required" }
+                  },
+                  "required": ["rule_id", "type", "tool"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "output": {},
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "status": { "enum": ["completed", "failed"] },
+                    "type": { "const": "expected_result" }
+                  },
+                  "required": ["rule_id", "type", "status", "output"],
+                  "type": "object"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "max_steps": { "minimum": 0, "type": "integer" },
+                    "rule_id": { "pattern": "^[a-z][a-z0-9-]*$", "type": "string" },
+                    "type": { "const": "step_budget" }
+                  },
+                  "required": ["rule_id", "type", "max_steps"],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 64,
+            "type": "array"
+          }
+        },
+        "required": ["case_id", "name", "baseline_trace", "candidate_trace", "rules"],
+        "type": "object"
+      },
+      "minItems": 1,
+      "maxItems": 32,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "suite_id": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "type": "string"
+    }
+  },
+  "required": ["schema_version", "suite_id", "cases"],
+  "title": "ToolCall Replay suite v1",
+  "type": "object",
+  "$defs": {
+    "tool": {
+      "pattern": "^[a-z][a-z0-9_.-]*$",
+      "type": "string"
+    }
+  }
+}
