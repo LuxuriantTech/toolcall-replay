@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "amendment": "urllib3_2_8_0_security_remediation",
+  "recorded_on": "2026-10-22",
+  "base_public_commit": "e4c59cdcc8fcdcb867fb03e38c40d7c62cf005ed",
+  "original_source_manifest": {
+    "path": "SOURCE_MANIFEST.json",
+    "sha256": "89d4e998413d2beeab7633e7cea87c5641417fe927674bb7e2e4d31007c1c101",
+    "status": "unchanged_historical_release_record"
+  },
+  "amended_files": [
+    {
+      "path": "uv.lock",
+      "original_sha256_from_source_manifest": "1b42dc96a2b81b7789cca2574ce142631d7a6877bce69dbd14ba8d67ebaf147b",
+      "amended_sha256": "f007ba79d0d326dbb37adc94d539e59cedd3ef17267b242889d01ee72ec74090",
+      "change": "Update only the transitive pip-audit development lock: urllib3 2.7.0 to the finding's fixed floor, 2.8.0, and certifi 2026.7.22 to the GHSA-6q48-6c7w-9gw2 fix, 2026.10.19. The product runtime has no urllib3 dependency or consumer."
+    }
+  ],
+  "scope": {
+    "changed_dependencies": ["urllib3 2.7.0 -> 2.8.0", "certifi 2026.7.22 -> 2026.10.19"],
+    "dependency_paths": ["pip-audit -> requests -> urllib3 (development group)", "pip-audit -> requests -> certifi (development group)"],
+    "source_manifest": "preserved unchanged; this record documents the post-release lock amendment",
+    "runtime_claim": "No product-runtime remediation is claimed."
+  }
+}
