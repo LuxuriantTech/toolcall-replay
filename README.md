@@ -1,6 +1,6 @@
 # ToolCall Replay
 
-[Try the interactive synthetic demo](https://ardian-mehaj-portfolio.vercel.app/projects/toolcall-replay/) · [Demo source and local preview](docs/interactive-demo/README.md) · [Contact me](mailto:mehajardian@gmail.com)
+[Try the interactive synthetic demo](https://ardianmehaj.dev/projects/toolcall-replay/) · [Demo source and local preview](docs/interactive-demo/README.md) · [Contact me](mailto:mehajardian@gmail.com)
 
 Compare a baseline and candidate tool-call trace against explicit rules. The evaluator is deterministic and does not execute tools or contact a model.
 
